@@ -17,10 +17,11 @@ MANDIR ?= share/man
 
 nls ?= 1
 xcb ?= 1
+ncurses ?= 1
 
 bin = radeontop
 xcblib = libradeontop_xcb.so
-src = $(filter-out amdgpu.c auth_xcb.c,$(wildcard *.c))
+src = $(filter-out amdgpu.c auth_xcb.c ui.c family_str.c,$(wildcard *.c))
 verh = include/version.h
 
 CFLAGS_SECTIONED = -ffunction-sections -fdata-sections
@@ -36,7 +37,11 @@ ifeq ($(xcb), 1)
 	CFLAGS += $(shell pkg-config --cflags xcb xcb-dri2)
 	CFLAGS += -DENABLE_XCB=1
 endif
+ifeq ($(ncurses), 1)
 CFLAGS += $(shell pkg-config --cflags ncurses 2>/dev/null)
+src += ui.c family_str.c
+CFLAGS += -DENABLE_NCURSES=1
+endif
 
 # Comment this if you don't want translations
 ifeq ($(nls), 1)
@@ -83,10 +88,12 @@ ifeq ($(xcb), 1)
 	LIBS += -ldl
 endif
 
+ifeq ($(ncurses), 1)
 # On some distros, you might have to change this to ncursesw
 LIBS += $(shell pkg-config --libs ncursesw 2>/dev/null || \
 		shell pkg-config --libs ncurses 2>/dev/null || \
 		echo "-lncurses")
+endif
 
 .PHONY: all clean install man dist
 

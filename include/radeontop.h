@@ -63,8 +63,10 @@ void collect(unsigned int ticks, unsigned int dumpinterval);
 
 extern struct bits_t *results;
 
+#ifdef ENABLE_NCURSES
 // ui.c
 void present(const unsigned int ticks, const char card[], unsigned int color, unsigned int transparency, const unsigned char bus, const unsigned int dumpinterval);
+#endif
 
 // dump.c
 void dumpdata(const unsigned int ticks, const char file[], const unsigned int limit, const unsigned char bus, const unsigned int dumpinterval);
@@ -128,7 +130,9 @@ enum radeon_family {
 	SIENNA_CICHLID,
 };
 
+#ifdef ENABLE_NCURSES
 extern const char * const family_str[];
+#endif
 
 // bits
 struct bits_t {
