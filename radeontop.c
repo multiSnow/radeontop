@@ -32,14 +32,18 @@ static void help(const char * const me, const unsigned int ticks, const unsigned
 	printf(_("\n\tRadeonTop for R600 and above.\n\n"
 		"\tUsage: %s [-chmv] [-b bus] [-d file] [-i seconds] [-l limit] [-p device] [-t ticks]\n\n"
 		"-b --bus 3		Pick card from this PCI bus (hexadecimal)\n"
+#ifdef ENABLE_NCURSES
 		"-c --color		Enable colors\n"
+#endif
 		"-d --dump file		Dump data to this file, - for stdout\n"
 		"-i --dump-interval 1	Number of seconds between dumps (default %u)\n"
 		"-l --limit 3		Quit after dumping N lines, default forever\n"
 		"-m --mem		Force the /dev/mem path, for the proprietary driver\n"
 		"-p --path device	Open DRM device node by path\n"
 		"-t --ticks 50		Samples per second (default %u)\n"
+#ifdef ENABLE_NCURSES
 		"-T --transparency	Enable transparency\n"
+#endif
 		"\n"
 		"-h --help		Show this help\n"
 		"-v --version		Show the version\n"),
@@ -55,8 +59,10 @@ int main(int argc, char **argv) {
 	const unsigned int default_dumpinterval = 1;
 
 	unsigned int ticks = default_ticks;
+#ifdef ENABLE_NCURSES
 	unsigned char color = 0;
 	unsigned char transparency = 0;
+#endif
 	short bus = -1;
 	unsigned char forcemem = 0;
 	unsigned int device_id = 0;
@@ -75,7 +81,9 @@ int main(int argc, char **argv) {
 	// opts
 	const struct option opts[] = {
 		{"bus", 1, 0, 'b'},
+#ifdef ENABLE_NCURSES
 		{"color", 0, 0, 'c'},
+#endif
 		{"dump", 1, 0, 'd'},
 		{"dump-interval", 1, 0, 'i'},
 		{"help", 0, 0, 'h'},
@@ -83,13 +91,19 @@ int main(int argc, char **argv) {
 		{"mem", 0, 0, 'm'},
 		{"path", 1, 0, 'p'},
 		{"ticks", 1, 0, 't'},
+#ifdef ENABLE_NCURSES
 		{"transparency", 0, 0, 'T'},
+#endif
 		{"version", 0, 0, 'v'},
 		{0, 0, 0, 0}
 	};
 
 	while (1) {
+#ifdef ENABLE_NCURSES
 		int c = getopt_long(argc, argv, "b:cTd:hi:l:mp:t:v", opts, NULL);
+#else
+		int c = getopt_long(argc, argv, "b:d:hi:l:mp:t:v", opts, NULL);
+#endif
 		if (c == -1) break;
 
 		switch(c) {
@@ -100,12 +114,14 @@ int main(int argc, char **argv) {
 			case 't':
 				ticks = atoi(optarg);
 			break;
+#ifdef ENABLE_NCURSES
 			case 'T':
 				transparency = 1;
 			break;
 			case 'c':
 				color = 1;
 			break;
+#endif
 			case 'm':
 				forcemem = 1;
 			break;
@@ -143,7 +159,9 @@ int main(int argc, char **argv) {
 	if (!family)
 		puts(_("Unknown Radeon card. <= R500 won't work, new cards might."));
 
+#ifdef ENABLE_NCURSES
 	const char * const cardname = family_str[family];
+#endif
 
 	initbits(family);
 
@@ -153,7 +171,11 @@ int main(int argc, char **argv) {
 	if (dump)
 		dumpdata(ticks, dump, limit, bus, dumpinterval);
 	else
+#ifdef ENABLE_NCURSES
 		present(ticks, cardname, color,transparency, bus, dumpinterval);
+#else
+		help(argv[0], default_ticks, default_dumpinterval);
+#endif
 
 	cleanup();
 	return 0;
