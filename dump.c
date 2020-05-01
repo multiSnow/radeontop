@@ -45,12 +45,14 @@ void dumpdata(const unsigned int ticks, const char file[], const unsigned int li
 	sigaction(SIGTERM, &sig, NULL);
 	sigaction(SIGINT, &sig, NULL);
 
+#ifndef LESS_DUMPDATA
 	printf(_("Dumping to %s, "), file);
 
 	if (limit)
 		printf(_("line limit %u.\n"), limit);
 	else
 		puts(_("until termination."));
+#endif
 
 	// Check the file can be output to
 	FILE *f = NULL;
@@ -74,6 +76,27 @@ void dumpdata(const unsigned int ticks, const char file[], const unsigned int li
 		struct timeval t;
 		gettimeofday(&t, NULL);
 
+#ifdef LESS_DUMPDATA
+                float k = 1.0f / ticks / dumpinterval;
+                fprintf(f, "epoch:%llu|bus:%02x|"
+                        "gpu:%.3f|"
+                        "sclk:%.0f|sclk_max:%u|"
+                        "mclk:%.0f|mclk_max:%u|",
+                        (unsigned long long) t.tv_sec, bus,
+                        100 * results->gui * k,
+                        results->sclk * k * 1000, sclk_max,
+                        results->mclk * k * 1000, mclk_max);
+                if (bits.vram)
+                  fprintf(f, "vram:%lu|"
+                          "vramsize:%lu|",
+                          results->vram,
+                          vramsize);
+                if (bits.gtt)
+                  fprintf(f, "gtt:%lu|"
+                          "gttsize:%lu|",
+                          results->gtt,
+                          gttsize);
+#else
 		fprintf(f, "%llu.%llu: ", (unsigned long long) t.tv_sec,
 				(unsigned long long) t.tv_usec);
 
@@ -138,6 +161,7 @@ void dumpdata(const unsigned int ticks, const char file[], const unsigned int li
 			fprintf(f, ", mclk %.2f%% %.3fghz, sclk %.2f%% %.3fghz",
 					mclk, mclk_ghz, sclk, sclk_ghz);
 
+#endif
 		fprintf(f, "\n");
 		fflush(f);
 
