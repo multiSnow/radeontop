@@ -126,7 +126,8 @@ enum radeon_family {
 	NAVI10,
 	NAVI14,
 	RENOIR,
-	NAVI12
+	NAVI12,
+	SIENNA_CICHLID,
 };
 
 #ifdef ENABLE_NCURSES
